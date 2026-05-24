@@ -1,0 +1,27 @@
+{
+  "total_sessions": 3,
+  "avg_quality": 7.67,
+  "avg_duration_sec": 29.57,
+  "error_rate": 0.33,
+  "top_errors": [
+    [
+      "API限流",
+      1
+    ]
+  ],
+  "top_keywords": [
+    [
+      "fastapi",
+      1
+    ],
+    [
+      "python",
+      1
+    ],
+    [
+      "redis",
+      1
+    ]
+  ],
+  "last_analyzed": "2026-05-24T21:51:57.248640"
+}

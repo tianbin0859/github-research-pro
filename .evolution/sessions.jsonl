@@ -1,0 +1,3 @@
+{"timestamp": "2026-05-24T21:51:57.246730", "query": "fastapi auth", "results_count": 3, "duration_sec": 25.5, "quality_score": 8, "errors": [], "findings": ["fastapi-users: 用户认证", "fastapi-jwt: JWT实现"], "version": "1.0.0"}
+{"timestamp": "2026-05-24T21:51:57.246947", "query": "python scraper", "results_count": 2, "duration_sec": 45.2, "quality_score": 6, "errors": ["API限流"], "findings": ["scrapy: 框架"], "version": "1.0.0"}
+{"timestamp": "2026-05-24T21:51:57.247094", "query": "redis cache", "results_count": 3, "duration_sec": 18.0, "quality_score": 9, "errors": [], "findings": ["redis-py: 客户端", "django-redis: 集成"], "version": "1.0.0"}

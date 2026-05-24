@@ -1,0 +1,7 @@
+{
+  "min_stars_default": 50,
+  "max_results_default": 2,
+  "quality_threshold": 7,
+  "error_cooldown_sec": 120,
+  "last_updated": "2026-05-24T21:51:57.248082"
+}
