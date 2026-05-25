@@ -1,9 +1,13 @@
 {
-  "total_sessions": 3,
-  "avg_quality": 7.67,
-  "avg_duration_sec": 29.57,
-  "error_rate": 0.33,
+  "total_sessions": 26,
+  "avg_quality": 6.88,
+  "avg_duration_sec": 15.77,
+  "error_rate": 0.12,
   "top_errors": [
+    [
+      "401 {\"message\": \"Bad credentials\", \"documentation_url\": \"https://docs.github.com/rest\", \"status\": \"401\"}",
+      2
+    ],
     [
       "API限流",
       1
@@ -11,17 +15,25 @@
   ],
   "top_keywords": [
     [
-      "fastapi",
-      1
+      "minecraft",
+      4
     ],
     [
-      "python",
-      1
+      "douyin",
+      2
     ],
     [
-      "redis",
-      1
+      "tiktok",
+      2
+    ],
+    [
+      "ecommerce",
+      2
+    ],
+    [
+      "web",
+      2
     ]
   ],
-  "last_analyzed": "2026-05-24T21:51:57.248640"
+  "last_analyzed": "2026-05-25T18:03:31.856763"
 }

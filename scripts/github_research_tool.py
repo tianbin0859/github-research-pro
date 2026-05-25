@@ -418,14 +418,39 @@ class GitHubResearchPro:
         report.append(f"\n> 生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
         report.append(f"> 共分析 {len(results)} 个高星项目\n")
         
+        # 核心发现汇总表
+        report.append("## 一、核心发现汇总\n")
+        report.append("| 项目 | Stars | 语言 | 核心功能 | 可借鉴点 | 技术细节 |")
+        report.append("|------|-------|------|---------|---------|---------|")
+        
+        for repo in results:
+            # 提取核心功能（从描述或README）
+            core_func = repo.description[:30] if repo.description else "未提供"
+            # 可借鉴点
+            takeaways = self._extract_takeaways(repo)
+            # 技术细节
+            tech_details = self._extract_tech_details(repo)
+            
+            report.append(f"| **{repo.full_name}** | {repo.stars} | {repo.language} | {core_func} | {takeaways} | {tech_details} |")
+        
+        report.append("")
+        
+        # 详细分析
         for i, repo in enumerate(results, 1):
-            report.append(f"## {i}. {repo.full_name} (评分: {repo.score})")
+            report.append(f"## {i+1}. {repo.full_name} 详细分析")
             report.append(f"- ⭐ Stars: {repo.stars} | 🍴 Forks: {repo.forks}")
             report.append(f"- 🏷️ 语言: {repo.language} | 更新: {repo.last_updated[:10]}")
             report.append(f"- 🔗 {repo.url}")
             if repo.topics:
                 report.append(f"- 🏷️ Topics: {', '.join(repo.topics[:5])}")
             report.append(f"\n**描述**: {repo.description}\n")
+            
+            # 技术细节深度分析
+            tech_analysis = self._generate_tech_analysis(repo)
+            if tech_analysis:
+                report.append("**技术细节分析**:")
+                report.append(tech_analysis)
+                report.append("")
             
             if repo.readme_summary:
                 report.append("**README 核心**:")
@@ -446,9 +471,17 @@ class GitHubResearchPro:
                     report.append(f"- `{filename}`: {', '.join(items[:5])}...")
                 report.append("")
         
-        # 添加建议
+        # 关键结论
         report.append("---\n")
-        report.append("## 💡 技术方案建议\n")
+        report.append("## 💡 关键结论\n")
+        conclusions = self._generate_conclusions(results)
+        for conclusion in conclusions:
+            report.append(f"- {conclusion}")
+        report.append("")
+        
+        # 技术方案建议
+        report.append("---\n")
+        report.append("## 二、技术方案建议\n")
         
         if results:
             best = results[0]
@@ -466,6 +499,124 @@ class GitHubResearchPro:
         report.append("- [ ] 添加完整的文档和示例")
         
         return "\n".join(report)
+    
+    def _extract_takeaways(self, repo: RepoAnalysis) -> str:
+        """提取可借鉴点"""
+        takeaways = []
+        if repo.stars > 1000:
+            takeaways.append("成熟生态")
+        if repo.language == "Python":
+            takeaways.append("Python栈")
+        if "framework" in repo.description.lower():
+            takeaways.append("框架设计")
+        if "bot" in repo.description.lower() or "automation" in repo.description.lower():
+            takeaways.append("自动化")
+        return ", ".join(takeaways[:3]) if takeaways else "通用参考"
+    
+    def _extract_tech_details(self, repo: RepoAnalysis) -> str:
+        """提取技术细节"""
+        details = []
+        if repo.dependencies:
+            deps_file = list(repo.dependencies.keys())[0]
+            deps_list = list(repo.dependencies.values())[0]
+            key_deps = [d.split('==')[0].split('>=')[0] for d in deps_list[:3]]
+            details.append(f"依赖: {', '.join(key_deps)}")
+        if repo.structure and len(repo.structure) > 5:
+            dirs = [s for s in repo.structure if s.startswith('📁')]
+            if dirs:
+                details.append(f"模块: {len(dirs)}个目录")
+        return "; ".join(details[:2]) if details else "详见文档"
+    
+    def _generate_tech_analysis(self, repo: RepoAnalysis) -> str:
+        """生成技术细节深度分析"""
+        analysis = []
+        
+        # 从README提取关键信息
+        if repo.readme_summary:
+            lines = repo.readme_summary.split('\n')
+            # 提取特性列表
+            features = [l for l in lines if l.strip().startswith('- ') or l.strip().startswith('* ')]
+            if features:
+                analysis.append("**核心特性**:")
+                for f in features[:5]:
+                    analysis.append(f"  {f}")
+                analysis.append("")
+            
+            # 提取安装/使用方式
+            install_lines = []
+            in_install = False
+            for l in lines:
+                if 'install' in l.lower() or 'usage' in l.lower() or 'quick start' in l.lower():
+                    in_install = True
+                if in_install and l.strip().startswith('```'):
+                    break
+                if in_install:
+                    install_lines.append(l)
+            if install_lines:
+                analysis.append("**快速开始**:")
+                for l in install_lines[:5]:
+                    analysis.append(f"  {l}")
+                analysis.append("")
+        
+        # 从依赖分析技术栈
+        if repo.dependencies:
+            for filename, items in repo.dependencies.items():
+                if 'requirements.txt' in filename or 'pyproject.toml' in filename:
+                    key_libs = [item.split('==')[0].split('>=')[0] for item in items[:8]]
+                    analysis.append(f"**技术栈 ({filename})**: {', '.join(key_libs)}")
+                    analysis.append("")
+                    break
+        
+        return "\n".join(analysis) if analysis else ""
+    
+    def _generate_conclusions(self, results: List[RepoAnalysis]) -> List[str]:
+        """生成关键结论"""
+        conclusions = []
+        
+        if not results:
+            return ["未找到合适的参考项目"]
+        
+        # 最佳项目
+        best = results[0]
+        conclusions.append(f"**{best.full_name}** 是最成熟的参考（{best.stars} stars），建议优先借鉴其架构")
+        
+        # 技术栈趋势
+        languages = {}
+        for r in results:
+            languages[r.language] = languages.get(r.language, 0) + 1
+        if languages:
+            top_lang = max(languages.items(), key=lambda x: x[1])[0]
+            conclusions.append(f"技术栈趋势：**{top_lang}** 生态最活跃（{languages[top_lang]}/{len(results)}个项目）")
+        
+        # 依赖共性
+        common_deps = self._find_common_dependencies(results)
+        if common_deps:
+            conclusions.append(f"共性依赖：**{', '.join(common_deps[:3])}** 被多个项目采用，可作为首选")
+        
+        # 架构模式
+        has_framework = any("framework" in (r.description or "").lower() for r in results)
+        if has_framework:
+            conclusions.append("架构模式：参考项目多采用**框架化设计**，建议采用插件/模块化架构")
+        
+        # 活跃度
+        recent_updates = sum(1 for r in results if r.last_updated and r.last_updated[:7] >= datetime.now().strftime('%Y-%m'))
+        if recent_updates >= len(results) / 2:
+            conclusions.append("维护状态：多数项目近期活跃，技术选型风险低")
+        
+        return conclusions
+    
+    def _find_common_dependencies(self, results: List[RepoAnalysis]) -> List[str]:
+        """找出共性依赖"""
+        all_deps = []
+        for r in results:
+            if r.dependencies:
+                for items in r.dependencies.values():
+                    deps = [item.split('==')[0].split('>=')[0].strip() for item in items]
+                    all_deps.extend(deps)
+        
+        from collections import Counter
+        counter = Counter(all_deps)
+        return [dep for dep, count in counter.most_common(5) if count > 1]
 
 
 def search_and_learn_github(
